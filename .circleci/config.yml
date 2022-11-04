@@ -13,12 +13,28 @@ jobs:
     steps:
       # install node and checkout code
       - node/install:
-          node-version: '14.15'         
+          node-version: '16.0.0'
       - checkout
+      - eb/setup
+      - aws-cli/setup
+      - checkout
+      - run:
+          name: Install pip
+          command: |
+            sudo apt update
+            sudo apt install -y python3-pip python-dev
+      - run:
+          name: Install AWS dependencies
+          command: |
+            sudo pip3 install awsebcli
       # Use root level package.json to install dependencies in the frontend app
       - run:
           name: Install Front-End Dependencies
           command: |
+            echo "NODE --version"
+            echo $(node --version)
+            echo "NPM --version"
+            echo $(npm --version)
             npm run frontend:install
       - run:
           name: Install API Dependencies
@@ -32,6 +48,10 @@ jobs:
           name: API Build
           command: |
              npm run api:build
+      - run:
+          name: Deploy App
+          command: |
+            npm run deploy
   # deploy step will run only after manual approval
   deploy:
     docker:
@@ -39,7 +59,7 @@ jobs:
       # more setup needed for aws, node, elastic beanstalk
     steps:
       - node/install:
-          node-version: '14.15' 
+          node-version: '16.0.0' 
       - eb/setup
       - aws-cli/setup
       - checkout
